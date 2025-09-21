@@ -47,6 +47,12 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        // Artisan color palette
+        'warm-brown': "hsl(var(--warm-brown))",
+        'clay-orange': "hsl(var(--clay-orange))",
+        'sage-green': "hsl(var(--sage-green))",
+        'cream': "hsl(var(--cream))",
+        'terracotta': "hsl(var(--terracotta))",
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",
@@ -62,6 +68,20 @@ export default {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
+      },
+      backgroundImage: {
+        'gradient-warm': 'var(--gradient-warm)',
+        'gradient-hero': 'var(--gradient-hero)',
+        'gradient-card': 'var(--gradient-card)',
+      },
+      boxShadow: {
+        'warm': 'var(--shadow-warm)',
+        'soft': 'var(--shadow-soft)',
+        'card': 'var(--shadow-card)',
+      },
+      transitionTimingFunction: {
+        'smooth': 'var(--transition-smooth)',
+        'bounce': 'var(--transition-bounce)',
       },
       keyframes: {
         "accordion-down": {

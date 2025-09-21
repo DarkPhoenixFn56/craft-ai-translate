@@ -15,6 +15,10 @@ const buttonVariants = cva(
         secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80",
         ghost: "hover:bg-accent hover:text-accent-foreground",
         link: "text-primary underline-offset-4 hover:underline",
+        // Artisan variants
+        artisan: "bg-gradient-warm text-white shadow-warm hover:shadow-lg transform hover:scale-105 transition-all duration-300",
+        craft: "bg-sage-green text-white hover:bg-sage-green/90 shadow-soft",
+        upload: "border-2 border-dashed border-clay-orange/30 bg-cream hover:border-clay-orange hover:bg-clay-orange/5 text-clay-orange transition-all duration-300",
       },
       size: {
         default: "h-10 px-4 py-2",
