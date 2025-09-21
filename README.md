@@ -30,5 +30,4 @@ ArtisansGoAI helps local artisans bring their crafts to the digital world by usi
 
 ## View at:
 https://preview--craft-ai-translate.lovable.app/
-git clone https://github.com/<your-username>/artisansgoai.git
-cd artisansgoai
+
