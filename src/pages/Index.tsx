@@ -12,12 +12,12 @@ const Index = () => {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [result, setResult] = useState<AIAnalysisResult | null>(null);
 
-  const handleAnalyze = async (image: File, note: string) => {
+  const handleAnalyze = async (image: File, note: string, audioNote?: Blob) => {
     setIsAnalyzing(true);
     setResult(null);
     
     try {
-      const analysisResult = await simulateAIAnalysis(image, note);
+      const analysisResult = await simulateAIAnalysis(image, note, audioNote);
       setResult(analysisResult);
     } catch (error) {
       console.error('Analysis failed:', error);
@@ -59,22 +59,22 @@ const Index = () => {
             </h1>
             
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-              Upload a product image and let AI create compelling descriptions in multiple languages. 
-              Perfect for artisans selling globally.
+              Upload a product image or record a voice note. AI creates compelling descriptions in multiple languages 
+              with cultural heritage insights. Perfect for artisans selling globally.
             </p>
             
             <div className="flex flex-wrap justify-center gap-4 text-sm text-warm-brown">
               <div className="flex items-center gap-2">
                 <div className="w-2 h-2 bg-clay-orange rounded-full"></div>
-                Vision AI Tagging
+                Vision AI + Voice Input
               </div>
               <div className="flex items-center gap-2">
                 <div className="w-2 h-2 bg-sage-green rounded-full"></div>
-                AI-Generated Descriptions
+                AI Descriptions + Cultural Context
               </div>
               <div className="flex items-center gap-2">
                 <div className="w-2 h-2 bg-terracotta rounded-full"></div>
-                Multi-Language Support
+                Multi-Language + Analytics
               </div>
             </div>
           </div>
@@ -113,33 +113,41 @@ const Index = () => {
           <Card className="max-w-4xl mx-auto p-8 bg-white/80 backdrop-blur-sm border-clay-orange/20">
             <div className="text-center space-y-6">
               <h3 className="text-2xl font-bold text-warm-brown">How It Works</h3>
-              <div className="grid md:grid-cols-3 gap-6">
+              <div className="grid md:grid-cols-4 gap-6">
                 <div className="space-y-3">
                   <div className="w-12 h-12 bg-clay-orange/10 rounded-lg flex items-center justify-center mx-auto">
                     <span className="text-lg font-bold text-clay-orange">1</span>
                   </div>
-                  <h4 className="font-semibold text-warm-brown">Vision AI Analysis</h4>
-                  <p className="text-sm text-muted-foreground">Google Cloud Vision AI identifies materials, styles, and product categories</p>
+                  <h4 className="font-semibold text-warm-brown">Vision AI + Voice</h4>
+                  <p className="text-sm text-muted-foreground">Upload images or record voice notes for AI analysis</p>
                 </div>
                 <div className="space-y-3">
                   <div className="w-12 h-12 bg-sage-green/10 rounded-lg flex items-center justify-center mx-auto">
                     <span className="text-lg font-bold text-sage-green">2</span>
                   </div>
-                  <h4 className="font-semibold text-warm-brown">AI Description</h4>
-                  <p className="text-sm text-muted-foreground">Vertex AI generates authentic, compelling product descriptions</p>
+                  <h4 className="font-semibold text-warm-brown">AI + Culture</h4>
+                  <p className="text-sm text-muted-foreground">Generate descriptions with cultural heritage insights</p>
                 </div>
                 <div className="space-y-3">
                   <div className="w-12 h-12 bg-terracotta/10 rounded-lg flex items-center justify-center mx-auto">
                     <span className="text-lg font-bold text-terracotta">3</span>
                   </div>
                   <h4 className="font-semibold text-warm-brown">Multi-Language</h4>
-                  <p className="text-sm text-muted-foreground">Cloud Translation API creates Hindi and Spanish versions</p>
+                  <p className="text-sm text-muted-foreground">Translate to Hindi and Spanish with reach analytics</p>
+                </div>
+                <div className="space-y-3">
+                  <div className="w-12 h-12 bg-warm-brown/10 rounded-lg flex items-center justify-center mx-auto">
+                    <span className="text-lg font-bold text-warm-brown">4</span>
+                  </div>
+                  <h4 className="font-semibold text-warm-brown">Artisan Pages</h4>
+                  <p className="text-sm text-muted-foreground">Auto-generate marketplace-ready profile pages</p>
                 </div>
               </div>
               
               <div className="pt-6 border-t border-clay-orange/20">
                 <p className="text-sm text-muted-foreground mb-4">
-                  This is a hackathon demo. In production, this connects to Google Cloud APIs via FastAPI backend.
+                  Upgraded hackathon demo with voice input, cultural context, and artisan marketplace features. 
+                  In production, connects to Google Cloud APIs via FastAPI backend.
                 </p>
                 <div className="flex justify-center gap-4">
                   <Button variant="outline" size="sm" className="gap-2">

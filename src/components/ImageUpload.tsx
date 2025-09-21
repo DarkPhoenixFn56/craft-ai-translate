@@ -2,11 +2,14 @@ import React, { useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
-import { Upload, X, ImageIcon } from 'lucide-react';
+import { Separator } from '@/components/ui/separator';
+import { Upload, X, ImageIcon, Mic } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { VoiceRecorder } from '@/components/VoiceRecorder';
+import { simulateSpeechToText, isAudioSupported } from '@/utils/speechToText';
 
 interface ImageUploadProps {
-  onAnalyze: (image: File, note: string) => void;
+  onAnalyze: (image: File, note: string, audioNote?: Blob) => void;
   isAnalyzing: boolean;
 }
 
@@ -14,6 +17,8 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({ onAnalyze, isAnalyzing
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [note, setNote] = useState('');
+  const [voiceNote, setVoiceNote] = useState<Blob | null>(null);
+  const [isTranscribing, setIsTranscribing] = useState(false);
   const [dragActive, setDragActive] = useState(false);
 
   const handleDrag = useCallback((e: React.DragEvent) => {
@@ -58,9 +63,23 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({ onAnalyze, isAnalyzing
     setImagePreview(null);
   };
 
+  const handleVoiceRecording = async (audioBlob: Blob) => {
+    setVoiceNote(audioBlob);
+    setIsTranscribing(true);
+    
+    try {
+      const transcription = await simulateSpeechToText(audioBlob);
+      setNote(prevNote => prevNote ? `${prevNote} ${transcription}` : transcription);
+    } catch (error) {
+      console.error('Transcription failed:', error);
+    } finally {
+      setIsTranscribing(false);
+    }
+  };
+
   const handleAnalyze = () => {
     if (selectedImage) {
-      onAnalyze(selectedImage, note);
+      onAnalyze(selectedImage, note, voiceNote || undefined);
     }
   };
 
@@ -128,16 +147,35 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({ onAnalyze, isAnalyzing
           )}
         </div>
 
-        <div className="space-y-2">
-          <label className="text-sm font-medium text-warm-brown">
-            Add a note (optional)
-          </label>
-          <Textarea
-            placeholder="Describe your product, materials used, inspiration, or any special details..."
-            value={note}
-            onChange={(e) => setNote(e.target.value)}
-            className="min-h-20 border-clay-orange/20 focus:border-clay-orange"
-          />
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-warm-brown">
+              Add a note (optional)
+            </label>
+            <Textarea
+              placeholder="Describe your product, materials used, inspiration, or any special details..."
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+              className="min-h-20 border-clay-orange/20 focus:border-clay-orange"
+              disabled={isTranscribing}
+            />
+            {isTranscribing && (
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-clay-orange" />
+                Transcribing voice note...
+              </div>
+            )}
+          </div>
+
+          {isAudioSupported() && (
+            <>
+              <Separator className="bg-clay-orange/20" />
+              <VoiceRecorder 
+                onRecordingComplete={handleVoiceRecording}
+                isDisabled={isAnalyzing || isTranscribing}
+              />
+            </>
+          )}
         </div>
 
         <Button

@@ -69,23 +69,48 @@ app.add_middleware(
 @app.post("/analyze")
 async def analyze_product(
     image: UploadFile = File(...),
-    note: str = Form("")
+    note: str = Form(""),
+    audio: Optional[UploadFile] = File(None)
 ):
-    # 1. Analyze image with Vision AI
+    # 1. Transcribe audio if provided (Speech-to-Text)
+    transcribed_text = ""
+    if audio:
+        transcribed_text = await transcribe_audio(audio)
+        note = f"{note} {transcribed_text}".strip()
+    
+    # 2. Analyze image with Vision AI
     tags = await analyze_image(image)
     
-    # 2. Generate description with Vertex AI
-    description_en = await generate_description(tags, note)
+    # 3. Generate description with cultural context using Vertex AI
+    description_en = await generate_description_with_culture(tags, note)
     
-    # 3. Translate to multiple languages
+    # 4. Translate to multiple languages
     description_hi = await translate_text(description_en, "hi")
     description_es = await translate_text(description_en, "es")
+    
+    # 5. Generate unique artisan ID
+    artisan_id = f"artisan_{int(time.time())}_{secrets.token_urlsafe(8)}"
     
     return {
         "tags": tags,
         "description_en": description_en,
         "description_hi": description_hi,
-        "description_es": description_es
+        "description_es": description_es,
+        "cultural_fact": "Cultural fact would be extracted from the AI response",
+        "artisan_id": artisan_id
+    }
+
+@app.get("/artisan/{artisan_id}")
+async def get_artisan_page(artisan_id: str):
+    # Mock artisan data (in production, fetch from database)
+    return {
+        "artisan_id": artisan_id,
+        "artisan_name": "Maria Elena Rodriguez",
+        "location": "Oaxaca, Mexico",
+        "joined_date": "2023",
+        "rating": 4.8,
+        "total_products": 23,
+        "specialties": ["ceramic", "pottery", "traditional"]
     }
 
 @app.get("/health")
@@ -117,12 +142,37 @@ async def analyze_image(image_file):
     return tags
 ```
 
-#### Vertex AI Service (services/vertex_ai.py)
+#### Speech-to-Text Service (services/speech_to_text.py)
+```python
+from google.cloud import speech
+import io
+
+async def transcribe_audio(audio_file):
+    client = speech.SpeechClient()
+    
+    content = await audio_file.read()
+    audio = speech.RecognitionAudio(content=content)
+    
+    config = speech.RecognitionConfig(
+        encoding=speech.RecognitionConfig.AudioEncoding.WEBM_OPUS,
+        sample_rate_hertz=48000,
+        language_code="en-US",
+        alternative_language_codes=["hi-IN", "es-ES"]
+    )
+    
+    response = client.recognize(config=config, audio=audio)
+    
+    if response.results:
+        return response.results[0].alternatives[0].transcript
+    return ""
+```
+
+#### Enhanced Vertex AI Service (services/vertex_ai.py)
 ```python
 from google.cloud import aiplatform
 import os
 
-async def generate_description(tags, note):
+async def generate_description_with_culture(tags, note):
     aiplatform.init(
         project=os.getenv("PROJECT_ID"),
         location=os.getenv("LOCATION")
@@ -133,13 +183,17 @@ async def generate_description(tags, note):
     Tags: {', '.join(tags)}
     Artisan note: {note}
     
-    Style: Authentic, warm, highlights craftsmanship and uniqueness.
+    Include:
+    1. Authentic, warm description highlighting craftsmanship
+    2. One cultural/historical fact relevant to the craft or technique
+    
+    Style: Authentic, celebrates heritage, emphasizes uniqueness and story.
     """
     
     # Use Vertex AI text generation
     # Implementation depends on your chosen model (PaLM, Gemini, etc.)
     
-    return generated_description
+    return generated_description_with_cultural_context
 ```
 
 #### Translation Service (services/translation.py)
@@ -181,11 +235,12 @@ const API_BASE_URL = 'https://your-cloud-run-url.run.app';
 ### Cost Optimization
 
 - **Vision AI**: ~$1.50 per 1000 images
+- **Speech-to-Text**: ~$0.004 per 15 seconds (free tier: 60 minutes/month)
 - **Vertex AI**: ~$0.002 per 1000 tokens
 - **Translation**: ~$20 per 1M characters
 - **Cloud Run**: Free tier covers light usage
 
-**Daily budget (~$3)**: ~500 image analyses with descriptions and translations.
+**Daily budget (~$3)**: ~300 image analyses with voice notes, descriptions, and translations.
 
 ## Frontend Connection
 
@@ -193,10 +248,13 @@ Update the mock function in your React app:
 
 ```typescript
 // src/utils/mockAI.ts -> src/utils/realAI.ts
-export const analyzeWithAI = async (image: File, note: string): Promise<AIAnalysisResult> => {
+export const analyzeWithAI = async (image: File, note: string, audioNote?: Blob): Promise<AIAnalysisResult> => {
   const formData = new FormData();
   formData.append('image', image);
   formData.append('note', note);
+  if (audioNote) {
+    formData.append('audio', audioNote);
+  }
 
   const response = await fetch(`${API_BASE_URL}/analyze`, {
     method: 'POST',
@@ -207,8 +265,14 @@ export const analyzeWithAI = async (image: File, note: string): Promise<AIAnalys
   
   return {
     ...result,
-    image: URL.createObjectURL(image)
+    image: URL.createObjectURL(image),
+    artisan_id: result.artisan_id || `artisan_${Date.now()}`
   };
+};
+
+export const getArtisanPage = async (artisanId: string) => {
+  const response = await fetch(`${API_BASE_URL}/artisan/${artisanId}`);
+  return response.json();
 };
 ```
 
